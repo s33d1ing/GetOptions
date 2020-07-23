@@ -58,8 +58,8 @@ function Get-Options {
         [string[]]$LongOptions
     )
 
-    $Options = New-Object -TypeName System.Collections.Hashtable
-    $Remaining = New-Object -TypeName System.Collections.ArrayList
+    $Options = New-Object -TypeName System.Collections.Specialized.OrderedDictionary
+    $Remaining = New-Object -TypeName System.Collections.Generic.List[System.Object]
 
     # Ensure these are arrays
     $Arguments = $Arguments -as [array]
@@ -70,10 +70,12 @@ function Get-Options {
 
         if ($null -eq $arg) { continue }
 
-        # Don't try to parse array arguments
-        elseif ($arg -is [array]) { $Remaining += ,$arg }
-        elseif ($arg -is [int]) { $Remaining += $arg }
-        elseif ($arg -is [decimal]) { $Remaining += $arg }
+        # Ensure arrays are added to the list as an element
+        elseif ($arg -is [array]) { $Remaining.Add((, $arg)) }
+
+        elseif ($arg -is [decimal]) { $Remaining.Add($arg) }
+        elseif ($arg -is [double]) { $Remaining.Add($arg) }
+        elseif ($arg -is [int]) { $Remaining.Add($arg) }
 
         elseif ($arg.StartsWith('--')) {
             $name = $arg.Substring(2)
@@ -117,7 +119,7 @@ function Get-Options {
             }
         }
 
-        else { $Remaining += $arg }
+        else { $Remaining.Add($arg) }
     }
 
     return $Options, $Remaining
