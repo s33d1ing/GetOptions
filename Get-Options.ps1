@@ -75,6 +75,9 @@ function Get-Options {
     $Options = New-Object -TypeName System.Collections.Specialized.OrderedDictionary
     $Remaining = New-Object -TypeName System.Collections.Generic.List[System.Object]
 
+    # Replace "-", "/", or "+" prefixes with a single or double dash ("-")
+    $Arguments = $Arguments -replace '^[-/+]{1}', '-' -replace '^[-/]{2}', '--'
+
     # Ensure these are arrays
     $Arguments = $Arguments -as [array]
     $LongOptions = $LongOptions -as [array]
