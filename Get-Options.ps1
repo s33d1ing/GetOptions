@@ -160,7 +160,7 @@ function Get-Options {
                         $multiple = $Matches[0] -as [string]
                         $Options.Add($flag, $multiple.Length)
 
-                        while ($arg[$j + 1] -eq $flag) { $j++ }
+                        while ($arg[$j + 1] -ceq $flag) { $j++ }
                     }
                     else { $Options.Add($flag, $true) }
                 }
