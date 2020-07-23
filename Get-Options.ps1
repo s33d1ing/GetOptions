@@ -36,6 +36,12 @@ function Get-Options {
             Given: --Force = [bool]$Force; -f, --File = [string]$File; -v = [bool]$Verbose; -x = [bool]$Extract; -z = [bool]$Zip
             Returns: @( @{ Extract = $true; Zip = $true; Verbose = $true; File = 'Archive.zip' }, 'C:\Temp\Extracted' )
 
+        .EXAMPLE
+            Get-Options -Arguments ('-xzv', '--File=Archive.zip', '--Force') -OptionsString 'f:vxz' -LongOptions ('File=', 'Force')
+
+            Given: --Force = [bool]$Force; -f, --File = [string]$File; -v = [bool]$Verbose; -x = [bool]$Extract; -z = [bool]$Zip
+            Returns: @{ Extract = $true; Zip = $true; Verbose = $true; File = 'Archive.zip'; Force = $true }
+
         .LINK
             https://github.com/lukesampson/scoop/blob/master/lib/getopt.ps1
             http://hg.python.org/cpython/file/2.7/Lib/getopt.py
@@ -78,7 +84,14 @@ function Get-Options {
         elseif ($arg -is [int]) { $Remaining.Add($arg) }
 
         elseif ($arg.StartsWith('--')) {
-            $name = $arg.Substring(2)
+            # Capture the option and value if included
+            if (($index = $arg.IndexOf('=')) -ne -1) {
+                $name = $arg.Substring(2, ($index - 2))
+                $value = $arg.Substring($index + 1)
+            }
+
+            # Capture the option and reset value to null
+            else { $name, $value = $arg.Substring(2) }
 
             $longOpt = $LongOptions | Where-Object {
                 $PSItem -match '^(' + [regex]::Escape($name) + ')=?$'
@@ -86,8 +99,10 @@ function Get-Options {
 
             if ($longOpt) {
                 if ($longOpt.EndsWith('=')) {
+                    if ($null -ne $value) { $Options[$name] = $value }
+
                     # Check if on the last argument, or if the next argument begins with dash ("-")
-                    if (($i -eq ($Arguments.Length - 1)) -or ($Arguments[$i + 1] -match '^-')) {
+                    elseif (($i -eq ($Arguments.Length - 1)) -or ($Arguments[$i + 1] -match '^-')) {
                         return ($Options, $Remaining, ('Option "' + $name + '" requires an argument.'))
                     }
                     else { $Options[$name] = $Arguments[++$i] }
