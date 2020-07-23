@@ -94,10 +94,13 @@ function Get-Options {
             else { $name, $value = $arg.Substring(2) }
 
             $longOpt = $LongOptions | Where-Object {
-                $PSItem -match '^(' + [regex]::Escape($name) + ')=?$'
+                $PSItem -match '^(' + [regex]::Escape($name) + '[\w-]*)=?$'
             }
 
-            if ($longOpt) {
+            if ($longOpt.Count -eq 1) {
+                # Get the full name
+                $name = $Matches[1]
+
                 if ($longOpt.EndsWith('=')) {
                     if ($null -ne $value) { $Options[$name] = $value }
 
@@ -108,6 +111,9 @@ function Get-Options {
                     else { $Options[$name] = $Arguments[++$i] }
                 }
                 else { $Options[$name] = $true }
+            }
+            elseif ($longOpt.Count -gt 1) {
+                return ($Options, $Remaining, ('Option "' + $name + '" is not a unique prefix.'))
             }
             else {
                 return ($Options, $Remaining, ('Option "' + $name + '" not recognized.'))
