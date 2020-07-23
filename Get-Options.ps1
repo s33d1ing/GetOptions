@@ -18,11 +18,13 @@ function Get-Options {
             String containing the legitimate option characters.
 
             Options which require an argument should be followed by a colon (":").
+            Options which accept an optional argument should be followed by two colons ("::").
 
         .PARAMETER LongOptions
             Array of strings containing the names of the long options.
 
             Options which require an argument should be followed by an equal sign ("=").
+            Options which accept an optional argument should be followed by two equal signs ("==").
 
         .EXAMPLE
             Get-Options -Arguments ('-xzvf', 'Archive.zip', '--Force') -OptionsString 'f:vxz' -LongOptions ('File=', 'Force')
@@ -94,19 +96,20 @@ function Get-Options {
             else { $name, $value = $arg.Substring(2) }
 
             $longOpt = $LongOptions | Where-Object {
-                $PSItem -match '^(' + [regex]::Escape($name) + '[\w-]*)=?$'
+                $PSItem -match ('^(' + [regex]::Escape($name) + '[\w-]*)={0,2}')
             }
 
             if ($longOpt.Count -eq 1) {
-                # Get the full name
-                $name = $Matches[1]
+                # Capture the unabbreviated name
+                $name = $Matches[1] -as [string]
 
                 if ($longOpt.EndsWith('=')) {
                     if ($null -ne $value) { $Options[$name] = $value }
 
                     # Check if on the last argument, or if the next argument begins with dash ("-")
                     elseif (($i -eq ($Arguments.Length - 1)) -or ($Arguments[$i + 1] -match '^-')) {
-                        return ($Options, $Remaining, ('Option "' + $name + '" requires an argument.'))
+                        if ($longOpt.EndsWith('==')) { $Options[$name] = $true }
+                        else { return ($Options, $Remaining, ('Option "' + $name + '" requires an argument.')) }
                     }
                     else { $Options[$name] = $Arguments[++$i] }
                 }
@@ -124,13 +127,14 @@ function Get-Options {
             for ($j = 1; $j -lt $arg.Length; $j++) {
                 $flag = $arg[$j] -as [string]
 
-                if ($OptionsString -match ([regex]::Escape($flag) + ':?')) {
-                    $shortOpt = $Matches[0]
+                if ($OptionsString -match ([regex]::Escape($flag) + ':{0,2}')) {
+                    $shortOpt = $Matches[0] -as [string]
 
                     if ($shortOpt.EndsWith(':')) {
                         # Check if there are more flags, if on the last argument, or if the next argument begins with dash ("-")
                         if (($j -ne ($arg.Length - 1)) -or ($i -eq ($Arguments.Length - 1)) -or ($Arguments[$i + 1] -match '^-')) {
-                            return ($Options, $Remaining, ('Option "' + $flag + '" requires an argument.'))
+                            if ($shortOpt.EndsWith('::')) { $Options[$flag] = $true }
+                            else { return ($Options, $Remaining, ('Option "' + $flag + '" requires an argument.')) }
                         }
                         else { $Options[$flag] = $Arguments[++$i] }
                     }
