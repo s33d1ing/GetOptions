@@ -86,7 +86,8 @@ function Get-Options {
 
             if ($longOpt) {
                 if ($longOpt.EndsWith('=')) {
-                    if ($i -eq ($Arguments.Length - 1)) {
+                    # Check if on the last argument, or if the next argument begins with dash ("-")
+                    if (($i -eq ($Arguments.Length - 1)) -or ($Arguments[$i + 1] -match '^-')) {
                         return ($Options, $Remaining, ('Option "' + $name + '" requires an argument.'))
                     }
                     else { $Options[$name] = $Arguments[++$i] }
@@ -106,7 +107,8 @@ function Get-Options {
                     $shortOpt = $Matches[0]
 
                     if ($shortOpt.EndsWith(':')) {
-                        if (($j -ne ($arg.Length - 1)) -or ($i -eq ($Arguments.Length - 1))) {
+                        # Check if there are more flags, if on the last argument, or if the next argument begins with dash ("-")
+                        if (($j -ne ($arg.Length - 1)) -or ($i -eq ($Arguments.Length - 1)) -or ($Arguments[$i + 1] -match '^-')) {
                             return ($Options, $Remaining, ('Option "' + $flag + '" requires an argument.'))
                         }
                         else { $Options[$flag] = $Arguments[++$i] }
