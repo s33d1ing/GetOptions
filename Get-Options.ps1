@@ -81,9 +81,8 @@ function Get-Options {
         # Ensure arrays are added to the list as an element
         elseif ($arg -is [array]) { $Remaining.Add((, $arg)) }
 
-        elseif ($arg -is [decimal]) { $Remaining.Add($arg) }
-        elseif ($arg -is [double]) { $Remaining.Add($arg) }
-        elseif ($arg -is [int]) { $Remaining.Add($arg) }
+        # Ensure only strings are parsed as options or arguments
+        elseif ($arg -isnot [string]) { $Remaining.Add($arg) }
 
         elseif ($LongOptions -and $arg.StartsWith('--')) {
             # Capture the option and value if included
