@@ -104,16 +104,16 @@ function Get-Options {
                 $name = $Matches[1] -as [string]
 
                 if ($longOpt.EndsWith('=')) {
-                    if ($null -ne $value) { $Options[$name] = $value }
+                    if ($null -ne $value) { $Options.Add($name, $value) }
 
                     # Check if on the last argument, or if the next argument begins with dash ("-")
                     elseif (($i -eq ($Arguments.Length - 1)) -or ($Arguments[$i + 1] -match '^-')) {
-                        if ($longOpt.EndsWith('==')) { $Options[$name] = $true }
+                        if ($longOpt.EndsWith('==')) { $Options.Add($name, $true) }
                         else { return ($Options, $Remaining, ('Option "' + $name + '" requires an argument.')) }
                     }
-                    else { $Options[$name] = $Arguments[++$i] }
+                    else { $Options.Add($name, $Arguments[++$i]) }
                 }
-                else { $Options[$name] = $true }
+                else { $Options.Add($name, $true) }
             }
             elseif ($longOpt.Count -gt 1) {
                 return ($Options, $Remaining, ('Option "' + $name + '" is not a unique prefix.'))
@@ -133,12 +133,12 @@ function Get-Options {
                     if ($shortOpt.EndsWith(':')) {
                         # Check if there are more flags, if on the last argument, or if the next argument begins with dash ("-")
                         if (($j -ne ($arg.Length - 1)) -or ($i -eq ($Arguments.Length - 1)) -or ($Arguments[$i + 1] -match '^-')) {
-                            if ($shortOpt.EndsWith('::')) { $Options[$flag] = $true }
+                            if ($shortOpt.EndsWith('::')) { $Options.Add($flag, $true) }
                             else { return ($Options, $Remaining, ('Option "' + $flag + '" requires an argument.')) }
                         }
-                        else { $Options[$flag] = $Arguments[++$i] }
+                        else { $Options.Add($flag, $Arguments[++$i]) }
                     }
-                    else { $Options[$flag] = $true }
+                    else { $Options.Add($flag, $true) }
                 }
                 else {
                     return ($Options, $Remaining, ('Option "' + $flag + '" not recognized.'))
