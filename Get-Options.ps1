@@ -103,6 +103,10 @@ function Get-Options {
                 # Capture the unabbreviated name
                 $name = $Matches[1] -as [string]
 
+                if ($Options.Contains($name)) {
+                    return ($Options, $Remaining, ('Option "' + $name + '" is already specified.'))
+                }
+
                 if ($longOpt.EndsWith('=')) {
                     if ($null -ne $value) { $Options.Add($name, $value) }
 
@@ -126,6 +130,10 @@ function Get-Options {
         elseif ($arg.StartsWith('-') -and ($arg -ne '-')) {
             for ($j = 1; $j -lt $arg.Length; $j++) {
                 $flag = $arg[$j] -as [string]
+
+                if ($Options.Contains($flag)) {
+                    return ($Options, $Remaining, ('Option "' + $flag + '" is already specified.'))
+                }
 
                 if ($OptionsString -match ([regex]::Escape($flag) + ':{0,2}')) {
                     $shortOpt = $Matches[0] -as [string]
