@@ -1,4 +1,46 @@
 function Get-Options {
+    <#
+        .SYNOPSIS
+            Parses command line arguments.
+
+        .DESCRIPTION
+            This module helps scripts to parse the command line arguments in $args.
+
+            It supports the same conventions as the Unix getopt() function differentiating between arguments starting with "-" and "--".
+            Long options similar to those supported by GNU software may be used as well via an optional third argument.
+
+            The function returns an array containing the Options as a hashtable and the remaining arguments as a string array.
+
+        .PARAMETER Arguments
+            Array of values for undeclared parameters that are passed to a function, script, or script block.
+
+        .PARAMETER OptionsString
+            String containing the legitimate option characters.
+
+            Options which require an argument should be followed by a colon (":").
+
+        .PARAMETER LongOptions
+            Array of strings containing the names of the long options.
+
+            Options which require an argument should be followed by an equal sign ("=").
+
+        .EXAMPLE
+            Get-Options -Arguments ('-xzvf', 'Archive.zip', '--Force') -OptionsString 'f:vxz' -LongOptions ('File=', 'Force')
+
+            Given: --Force = [bool]$Force; -f, --File = [string]$File; -v = [bool]$Verbose; -x = [bool]$Extract; -z = [bool]$Zip
+            Returns: @{ Extract = $true; Zip = $true; Verbose = $true; File = 'Archive.zip'; Force = $true }
+
+        .EXAMPLE
+            Get-Options -Arguments ('-xzvf', 'Archive.zip', 'C:\Temp\Extracted') -OptionsString 'f:vxz' -LongOptions ('File=', 'Force')
+
+            Given: --Force = [bool]$Force; -f, --File = [string]$File; -v = [bool]$Verbose; -x = [bool]$Extract; -z = [bool]$Zip
+            Returns: @( @{ Extract = $true; Zip = $true; Verbose = $true; File = 'Archive.zip' }, 'C:\Temp\Extracted' )
+
+        .LINK
+            https://github.com/lukesampson/scoop/blob/master/lib/getopt.ps1
+            http://hg.python.org/cpython/file/2.7/Lib/getopt.py
+    #>
+
     [Alias('getopt', 'getopt_long')]
     [CmdletBinding(DefaultParameterSetName = 'getopt')]
     param (
