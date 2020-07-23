@@ -85,7 +85,7 @@ function Get-Options {
         elseif ($arg -is [double]) { $Remaining.Add($arg) }
         elseif ($arg -is [int]) { $Remaining.Add($arg) }
 
-        elseif ($arg.StartsWith('--')) {
+        elseif ($LongOptions -and $arg.StartsWith('--')) {
             # Capture the option and value if included
             if (($index = $arg.IndexOf('=')) -ne -1) {
                 $name = $arg.Substring(2, ($index - 2))
