@@ -17,6 +17,9 @@ function Get-Options {
             An option's value can be provided as the proceeding argument or as a long option with an equal sign (i.e. --Option=Value).
             A single flag will evaluate to $true, repeating flags (i.e. -vvv) will evaluate to the number of occurrences (i.e. 3).
 
+            Flags are case sensitive and long options are case insensitive.
+            Note, PowerShell cannot handle like parameters of different cases.
+
         .PARAMETER OptionsString
             String containing the legitimate option characters.
 
@@ -137,7 +140,7 @@ function Get-Options {
                     return ($Options, $Remaining, ('Option "' + $flag + '" is already specified.'))
                 }
 
-                if ($OptionsString -match ([regex]::Escape($flag) + ':{0,2}')) {
+                if ($OptionsString -cmatch ([regex]::Escape($flag) + ':{0,2}')) {
                     $shortOpt = $Matches[0] -as [string]
 
                     if ($shortOpt.EndsWith(':')) {
@@ -150,7 +153,7 @@ function Get-Options {
                     }
 
                     # Check if the flag was repeated more than once
-                    elseif ($arg -match ([regex]::Escape($flag) + '{2,}')) {
+                    elseif ($arg -cmatch ([regex]::Escape($flag) + '{2,}')) {
                         $multiple = $Matches[0] -as [string]
                         $Options.Add($flag, $multiple.Length)
 
