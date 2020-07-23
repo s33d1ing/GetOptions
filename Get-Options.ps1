@@ -14,6 +14,9 @@ function Get-Options {
         .PARAMETER Arguments
             Array of values for undeclared parameters that are passed to a function, script, or script block.
 
+            An option's value can be provided as the proceeding argument or as a long option with an equal sign (i.e. --Option=Value).
+            A single flag will evaluate to $true, repeating flags (i.e. -vvv) will evaluate to the number of occurrences (i.e. 3).
+
         .PARAMETER OptionsString
             String containing the legitimate option characters.
 
@@ -144,6 +147,14 @@ function Get-Options {
                             else { return ($Options, $Remaining, ('Option "' + $flag + '" requires an argument.')) }
                         }
                         else { $Options.Add($flag, $Arguments[++$i]) }
+                    }
+
+                    # Check if the flag was repeated more than once
+                    elseif ($arg -match ([regex]::Escape($flag) + '{2,}')) {
+                        $multiple = $Matches[0] -as [string]
+                        $Options.Add($flag, $multiple.Length)
+
+                        while ($arg[$j + 1] -eq $flag) { $j++ }
                     }
                     else { $Options.Add($flag, $true) }
                 }
