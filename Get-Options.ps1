@@ -97,13 +97,13 @@ function Get-Options {
             # Capture the option and reset value to null
             else { $name, $value = $arg.Substring(2) }
 
-            $longOpt = $LongOptions | Where-Object {
-                $PSItem -match ('^(' + [regex]::Escape($name) + '[\w-]*)={0,2}')
+            # Check if the argument matches an option's name exactly, else check if the argument is an abbreviated name
+            if (-not ($longOpt = $LongOptions | Where-Object { $PSItem -match ('^(' + [regex]::Escape($name) + ')={0,2}$') })) {
+                $longOpt = $LongOptions | Where-Object { $PSItem -match ('^(' + [regex]::Escape($name) + '[\w-]*)={0,2}$') }
             }
 
-            if ($longOpt.Count -eq 1) {
-                # Capture the unabbreviated name
-                $name = $Matches[1] -as [string]
+            # Ensure there was only one match and capture the unabbreviated name
+            if (($longOpt.Count -eq 1) -and ($name = $Matches[1] -as [string])) {
 
                 if ($Options.Contains($name)) {
                     return ($Options, $Remaining, ('Option "' + $name + '" is already specified.'))
