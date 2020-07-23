@@ -75,9 +75,6 @@ function Get-Options {
     $Options = New-Object -TypeName System.Collections.Specialized.OrderedDictionary
     $Remaining = New-Object -TypeName System.Collections.Generic.List[System.Object]
 
-    # Replace "-", "/", or "+" prefixes with a single or double dash ("-")
-    $Arguments = $Arguments -replace '^[-/+]{1}', '-' -replace '^[-/]{2}', '--'
-
     # Ensure these are arrays
     $Arguments = $Arguments -as [array]
     $LongOptions = $LongOptions -as [array]
@@ -93,7 +90,7 @@ function Get-Options {
         # Ensure only strings are parsed as options or arguments
         elseif ($arg -isnot [string]) { $Remaining.Add($arg) }
 
-        elseif ($LongOptions -and $arg.StartsWith('--')) {
+        elseif ($LongOptions -and ($arg -match '^[-/]{2}\w+')) {
             # Capture the option and value if included
             if (($index = $arg.IndexOf('=')) -ne -1) {
                 $name = $arg.Substring(2, ($index - 2))
@@ -115,12 +112,12 @@ function Get-Options {
                     return ($Options, $Remaining, ('Option "' + $name + '" is already specified.'))
                 }
 
-                if ($longOpt.EndsWith('=')) {
+                if ($longOpt -match '=$') {
                     if ($null -ne $value) { $Options.Add($name, $value) }
 
-                    # Check if on the last argument, or if the next argument begins with dash ("-")
-                    elseif (($i -eq ($Arguments.Length - 1)) -or ($Arguments[$i + 1] -match '^-')) {
-                        if ($longOpt.EndsWith('==')) { $Options.Add($name, $true) }
+                    # Check if on the last argument, or if the next argument is another flag or option
+                    elseif (($i -eq ($Arguments.Length - 1)) -or ($Arguments[$i + 1] -match '^[-/+]')) {
+                        if ($longOpt -match '==$') { $Options.Add($name, $true) }
                         else { return ($Options, $Remaining, ('Option "' + $name + '" requires an argument.')) }
                     }
                     else { $Options.Add($name, $Arguments[++$i]) }
@@ -135,7 +132,7 @@ function Get-Options {
             }
         }
 
-        elseif ($arg.StartsWith('-') -and ($arg -ne '-')) {
+        elseif ($arg -match '^[-/+]{1}\w+') {
             for ($j = 1; $j -lt $arg.Length; $j++) {
                 $flag = $arg[$j] -as [string]
 
@@ -146,10 +143,10 @@ function Get-Options {
                 if ($OptionsString -cmatch ([regex]::Escape($flag) + ':{0,2}')) {
                     $shortOpt = $Matches[0] -as [string]
 
-                    if ($shortOpt.EndsWith(':')) {
-                        # Check if there are more flags, if on the last argument, or if the next argument begins with dash ("-")
-                        if (($j -ne ($arg.Length - 1)) -or ($i -eq ($Arguments.Length - 1)) -or ($Arguments[$i + 1] -match '^-')) {
-                            if ($shortOpt.EndsWith('::')) { $Options.Add($flag, $true) }
+                    if ($shortOpt -match ':$') {
+                        # Check if there are more flags, if on the last argument, or if the next argument is another flag or option
+                        if (($j -ne ($arg.Length - 1)) -or ($i -eq ($Arguments.Length - 1)) -or ($Arguments[$i + 1] -match '^[-/+]')) {
+                            if ($shortOpt -match '::$') { $Options.Add($flag, $true) }
                             else { return ($Options, $Remaining, ('Option "' + $flag + '" requires an argument.')) }
                         }
                         else { $Options.Add($flag, $Arguments[++$i]) }
