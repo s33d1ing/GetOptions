@@ -105,8 +105,9 @@ function Get-Options {
                 $longOpt = $LongOptions | Where-Object { $PSItem -match ('^(' + [regex]::Escape($name) + '[\w-]*)={0,2}$') }
             }
 
-            # Ensure there was only one match and capture the unabbreviated name
-            if (($longOpt.Count -eq 1) -and ($name = $Matches[1] -as [string])) {
+            if ($longOpt.Count -eq 1) {
+                # Capture the unabbreviated name
+                $name = $Matches[1] -as [string]
 
                 if ($Options.Contains($name)) {
                     return ($Options, $Remaining, ('Option "' + $name + '" is already specified.'))
@@ -154,8 +155,8 @@ function Get-Options {
 
                     # Check if the flag was repeated more than once
                     elseif ($arg -cmatch ([regex]::Escape($flag) + '{2,}')) {
-                        $multiple = $Matches[0] -as [string]
-                        $Options.Add($flag, $multiple.Length)
+                        $repeated = $Matches[0] -as [string]
+                        $Options.Add($flag, $repeated.Length)
 
                         while ($arg[$j + 1] -ceq $flag) { $j++ }
                     }
