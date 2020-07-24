@@ -90,7 +90,7 @@ function Get-Options {
         # Ensure only strings are parsed as options or arguments
         elseif ($arg -isnot [string]) { $Remaining.Add($arg) }
 
-        elseif ($LongOptions -and ($arg -match '^[-/]{2}\w+')) {
+        elseif ($LongOptions -and ($arg -match '^(--|//)\w+')) {
             # Capture the option and value if included
             if (($index = $arg.IndexOf('=')) -ne -1) {
                 $name = $arg.Substring(2, ($index - 2))

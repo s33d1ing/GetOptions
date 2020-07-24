@@ -29,6 +29,7 @@ Get-Options -Arguments ('--foo', 'Bar', '--version') -OptionsString 'F:fvV' -Lon
 
 #* Test for different prefixes
 Get-Options -Arguments ('-a', '/b', '+c', '--D', '//E') -OptionsString 'abc' -LongOptions ('D', 'E')
+Get-Options -Arguments ('--D', '//E', '-/F', '/-G') -OptionsString 'abc' -LongOptions ('D', 'E', 'F', 'G')
 
 #* Test for missing arguments
 Get-Options -Arguments ('-f', '--Bar', 'Test') -OptionsString 'f:b:' -LongOptions ('Foo=', 'Bar=')
