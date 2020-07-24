@@ -64,7 +64,7 @@ function Get-Options {
 
         [Alias('optstring', 'shortopts')]
         [Parameter(Mandatory = $true, ParameterSetName = 'getopt', Position = 1)]
-        [Parameter(Mandatory = $true, ParameterSetName = 'getopt_long', Position = 1)]
+        [Parameter(Mandatory = $false, ParameterSetName = 'getopt_long', Position = 1)]
         [string]$OptionsString,
 
         [Alias('longopts')]
@@ -133,7 +133,7 @@ function Get-Options {
             }
         }
 
-        elseif ($arg -match '^[-/+]{1}\w+') {
+        elseif ($OptionsString -and ($arg -match '^[-/+]{1}\w+')) {
             for ($j = 1; $j -lt $arg.Length; $j++) {
                 $flag = $arg[$j] -as [string]
 
