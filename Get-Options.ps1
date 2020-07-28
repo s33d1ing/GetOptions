@@ -134,12 +134,12 @@ function Get-Options {
             for ($j = 1; $j -lt $arg.Length; $j++) {
                 $flag = $arg[$j] -as [string]
 
-                if ($Options.Contains($flag)) {
-                    return ($Options, $Remaining, ('Option "' + $flag + '" is already specified.'))
-                }
-
                 if ($OptionsString -cmatch ([regex]::Escape($flag) + ':{0,2}')) {
                     $shortOpt = $Matches[0] -as [string]
+
+                    if ($Options.Contains($flag)) {
+                        return ($Options, $Remaining, ('Option "' + $flag + '" is already specified.'))
+                    }
 
                     if ($shortOpt -match ':$') {
                         # Check if there are more flags, if on the last argument, or if the next argument is another flag or option
