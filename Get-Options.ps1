@@ -84,9 +84,6 @@ function Get-Options {
 
         if ($null -eq $arg) { continue }
 
-        # Ensure arrays are added to the list as an element
-        elseif ($arg -is [array]) { $Remaining.Add((, $arg)) }
-
         # Ensure only strings are parsed as options or arguments
         elseif ($arg -isnot [string]) { $Remaining.Add($arg) }
 
