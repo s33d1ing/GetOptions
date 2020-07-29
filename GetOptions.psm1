@@ -88,19 +88,15 @@ function Get-Options {
         # Ensure only strings are parsed as options or arguments
         elseif ($arg -isnot [string]) { $Remaining.Add($arg) }
 
-        elseif ($LongOptions -and ($arg -match '^(--|//)\w+')) {
-            # Capture the option and value if included
-            if (($index = $arg.IndexOf('=')) -ne -1) {
-                $name = $arg.Substring(2, ($index - 2))
-                $value = $arg.Substring($index + 1)
-            }
+        elseif ($LongOptions -and ($arg -match '^(--|//)([\w-]+)([=:](.+))?')) {
+            $name = $Matches[2] -as [string]
 
-            # Capture the option and reset value to null
-            else { $name, $value = $arg.Substring(2) }
+            # Capture the value if it was included with the option
+            if ($null -ne $Matches[4]) { $value = $Matches[4] -as [string] }
 
-            # Check if the argument matches an option's name exactly, else check if the argument is an abbreviated name
-            if (-not ($longOpt = $LongOptions | Where-Object { $PSItem -match ('^(' + [regex]::Escape($name) + ')={0,2}$') })) {
-                $longOpt = $LongOptions | Where-Object { $PSItem -match ('^(' + [regex]::Escape($name) + '[\w-]*)={0,2}$') }
+            # Check if the argument matches an option's name exactly, or if it is an abbreviated name
+            if (-not ($longOpt = $LongOptions | Where-Object { $PSItem -match ('^(' + $name + ')={0,2}$') })) {
+                $longOpt = $LongOptions | Where-Object { $PSItem -match ('^(' + $name + '[\w-]*)={0,2}$') }
             }
 
             if ($longOpt.Count -eq 1) {
@@ -131,7 +127,7 @@ function Get-Options {
             }
         }
 
-        elseif ($OptionsString -and ($arg -match '^[-/+]{1}\w+')) {
+        elseif ($OptionsString -and ($arg -match '^[-/+]\w+')) {
             for ($j = 1; $j -lt $arg.Length; $j++) {
                 $flag = $arg[$j] -as [string]
 
@@ -143,8 +139,8 @@ function Get-Options {
                     }
 
                     if ($shortOpt -match ':$') {
-                        # Check if there is anything following the flag, and if it is another flag or if it is an argument
-                        if (($j -ne ($arg.Length - 1)) -and ($OptionsString -cnotmatch ([regex]::Escape($arg[$j + 1])))) {
+                        # Check if there is anything following the flag, if there is, verify it is not another flag
+                        if (($j -ne ($arg.Length - 1)) -and ($OptionsString -cnotmatch [regex]::Escape($arg[$j + 1]))) {
                             $value = $arg.Substring($j + 1)
                             $Options.Add($flag, $value)
 
