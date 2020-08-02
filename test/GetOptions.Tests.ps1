@@ -35,13 +35,6 @@ Describe 'Argument Parsing Tests' {
     }
 
     It 'Test for required arguments' {
-        $p, $r, $m = Get-Options -Arguments '-xzvfArchive.zip', '--Force'  -OptionsString 'f:vxz' -LongOptions 'File=', 'Force'
-        $p.x | Should -Be $true
-        $p.z | Should -Be $true
-        $p.v | Should -Be $true
-        $p.f | Should -Be 'Archive.zip'
-        $p.Force | Should -Be $true
-
         $p, $r, $m = Get-Options -Arguments '-xzv', '-fArchive.zip', '--Force'  -OptionsString 'f:vxz' -LongOptions 'File=', 'Force'
         $p.x | Should -Be $true
         $p.z | Should -Be $true
@@ -49,10 +42,10 @@ Describe 'Argument Parsing Tests' {
         $p.f | Should -Be 'Archive.zip'
         $p.Force | Should -Be $true
 
-        $p, $r, $m = Get-Options -Arguments '-xzvf', '--Force'  -OptionsString 'f:vxz' -LongOptions 'File=', 'Force'
+        $p, $r, $m = Get-Options -Arguments '-xzvfArchive.zip', '--Force'  -OptionsString 'f:vxz' -LongOptions 'File=', 'Force'
         $m | Should -Be 'Option "f" requires an argument.'
 
-        $p, $r, $m = Get-Options -Arguments '-fxzv', '--Force'  -OptionsString 'f:vxz' -LongOptions 'File=', 'Force'
+        $p, $r, $m = Get-Options -Arguments '-xzvf', '--Force'  -OptionsString 'f:vxz' -LongOptions 'File=', 'Force'
         $m | Should -Be 'Option "f" requires an argument.'
     }
 
@@ -75,7 +68,7 @@ Describe 'Argument Parsing Tests' {
     }
 
     It 'Test for non string arguments' {
-        $p, $r, $m = Get-Options -Arguments (-1, @(1), @(2, 3), @{ 'Foo' = 'Bar' }) -OptionsString 'h'
+        $p, $r, $m = Get-Options -Arguments @(-1, @(1), @(2, 3), @{ 'Foo' = 'Bar' }) -OptionsString 'h'
         $r[0] | Should -Be -1
         $r[1][0] | Should -Be 1
         $r[2][0] | Should -Be 2

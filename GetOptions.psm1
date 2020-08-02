@@ -139,16 +139,15 @@ function Get-Options {
                     }
 
                     if ($shortOpt -match ':$') {
-                        # Check if there is anything following the flag, if there is, verify it is not another flag
-                        if (($j -ne ($arg.Length - 1)) -and ($OptionsString -cnotmatch [regex]::Escape($arg[$j + 1]))) {
-                            $value = $arg.Substring($j + 1)
-                            $Options.Add($flag, $value)
+                        if (($j -eq 1) -and ($j -ne ($arg.Length - 1))) {
+                            # Capture anything following the flag
+                            $Options.Add($flag, $arg.Substring($j + 1))
 
                             while ($j -lt $arg.Length) { $j++ }
                         }
 
-                        # Check if there are more flags, if on the last argument, or if the next argument is another flag or option
-                        elseif (($j -ne ($arg.Length - 1)) -or ($i -eq ($Arguments.Length - 1)) -or ($Arguments[$i + 1] -match '^[-/+]')) {
+                        # Check if there are more arguments, or if the next argument is another flag or option
+                        elseif (($i -eq ($Arguments.Length - 1)) -or ($Arguments[$i + 1] -match '^[-/+]')) {
                             if ($shortOpt -match '::$') { $Options.Add($flag, $true) }
                             else { return ($Options, $Remaining, ('Option "' + $flag + '" requires an argument.')) }
                         }
