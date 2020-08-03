@@ -57,6 +57,7 @@ function Get-Options {
 
     [Alias('getopt', 'getopt_long')]
     [CmdletBinding(DefaultParameterSetName = 'getopt')]
+    [OutputType([System.Object[]])]
     param (
         [Alias('argv')]
         [Parameter(Mandatory = $true, Position = 0)]
@@ -64,7 +65,7 @@ function Get-Options {
 
         [Alias('optstring', 'shortopts')]
         [Parameter(Mandatory = $true, ParameterSetName = 'getopt', Position = 1)]
-        [Parameter(Mandatory = $true, ParameterSetName = 'getopt_long', Position = 1)]
+        [Parameter(Mandatory = $false, ParameterSetName = 'getopt_long', Position = 1)]
         [string]$OptionsString,
 
         [Alias('longopts')]
@@ -84,29 +85,23 @@ function Get-Options {
 
         if ($null -eq $arg) { continue }
 
-        # Ensure arrays are added to the list as an element
-        elseif ($arg -is [array]) { $Remaining.Add((, $arg)) }
-
         # Ensure only strings are parsed as options or arguments
         elseif ($arg -isnot [string]) { $Remaining.Add($arg) }
 
-        elseif ($LongOptions -and ($arg -match '^[-/]{2}\w+')) {
-            # Capture the option and value if included
-            if (($index = $arg.IndexOf('=')) -ne -1) {
-                $name = $arg.Substring(2, ($index - 2))
-                $value = $arg.Substring($index + 1)
+        elseif ($LongOptions -and ($arg -match '^(--|//)([\w-]+)([=:](.+))?')) {
+            $name = $Matches[2] -as [string]
+
+            # Capture the value if it was included with the option
+            if ($null -ne $Matches[4]) { $value = $Matches[4] -as [string] }
+
+            # Check if the argument matches an option's name exactly, or if it is an abbreviated name
+            if (-not ($longOpt = $LongOptions | Where-Object { $PSItem -match ('^(' + $name + ')={0,2}$') })) {
+                $longOpt = $LongOptions | Where-Object { $PSItem -match ('^(' + $name + '[\w-]*)={0,2}$') }
             }
 
-            # Capture the option and reset value to null
-            else { $name, $value = $arg.Substring(2) }
-
-            # Check if the argument matches an option's name exactly, else check if the argument is an abbreviated name
-            if (-not ($longOpt = $LongOptions | Where-Object { $PSItem -match ('^(' + [regex]::Escape($name) + ')={0,2}$') })) {
-                $longOpt = $LongOptions | Where-Object { $PSItem -match ('^(' + [regex]::Escape($name) + '[\w-]*)={0,2}$') }
-            }
-
-            # Ensure there was only one match and capture the unabbreviated name
-            if (($longOpt.Count -eq 1) -and ($name = $Matches[1] -as [string])) {
+            if ($longOpt.Count -eq 1) {
+                # Capture the unabbreviated name
+                $name = $Matches[1] -as [string]
 
                 if ($Options.Contains($name)) {
                     return ($Options, $Remaining, ('Option "' + $name + '" is already specified.'))
@@ -132,20 +127,27 @@ function Get-Options {
             }
         }
 
-        elseif ($arg -match '^[-/+]{1}\w+') {
+        elseif ($OptionsString -and ($arg -match '^[-/+].')) {
             for ($j = 1; $j -lt $arg.Length; $j++) {
                 $flag = $arg[$j] -as [string]
-
-                if ($Options.Contains($flag)) {
-                    return ($Options, $Remaining, ('Option "' + $flag + '" is already specified.'))
-                }
 
                 if ($OptionsString -cmatch ([regex]::Escape($flag) + ':{0,2}')) {
                     $shortOpt = $Matches[0] -as [string]
 
+                    if ($Options.Contains($flag)) {
+                        return ($Options, $Remaining, ('Option "' + $flag + '" is already specified.'))
+                    }
+
                     if ($shortOpt -match ':$') {
-                        # Check if there are more flags, if on the last argument, or if the next argument is another flag or option
-                        if (($j -ne ($arg.Length - 1)) -or ($i -eq ($Arguments.Length - 1)) -or ($Arguments[$i + 1] -match '^[-/+]')) {
+                        if (($j -eq 1) -and ($j -ne ($arg.Length - 1))) {
+                            # Capture anything following the flag
+                            $Options.Add($flag, $arg.Substring($j + 1))
+
+                            while ($j -lt $arg.Length) { $j++ }
+                        }
+
+                        # Check if there are more arguments, or if the next argument is another flag or option
+                        elseif (($i -eq ($Arguments.Length - 1)) -or ($Arguments[$i + 1] -match '^[-/+]')) {
                             if ($shortOpt -match '::$') { $Options.Add($flag, $true) }
                             else { return ($Options, $Remaining, ('Option "' + $flag + '" requires an argument.')) }
                         }
@@ -154,8 +156,8 @@ function Get-Options {
 
                     # Check if the flag was repeated more than once
                     elseif ($arg -cmatch ([regex]::Escape($flag) + '{2,}')) {
-                        $multiple = $Matches[0] -as [string]
-                        $Options.Add($flag, $multiple.Length)
+                        $repeated = $Matches[0] -as [string]
+                        $Options.Add($flag, $repeated.Length)
 
                         while ($arg[$j + 1] -ceq $flag) { $j++ }
                     }
