@@ -127,7 +127,7 @@ function Get-Options {
             }
         }
 
-        elseif ($OptionsString -and ($arg -match '^[-/+]\w+')) {
+        elseif ($OptionsString -and ($arg -match '^[-/+].')) {
             for ($j = 1; $j -lt $arg.Length; $j++) {
                 $flag = $arg[$j] -as [string]
 
