@@ -83,6 +83,16 @@ function Get-Options {
     for ($i = 0; $i -lt $Arguments.Length; $i++) {
         $arg = $Arguments[$i]
 
+        # If the options string contains "W;", then "-W Option" is treated as "--Option"
+        if ($LongOptions -and ($OptionsString -match 'W;') -and ($arg -cmatch '^-W(.+)?')) {
+            if ($null -ne $Matches[1]) { $arg = '--' + $Matches[1] }
+            elseif ($i -lt ($Arguments.Length - 1)) {
+                if ($Arguments[$i + 1] -notmatch '^[-/\+].') {
+                    $arg = '--' + $Arguments[++$i]
+                }
+            }
+        }
+
         if ($null -eq $arg) { continue }
 
         # Ensure only strings are parsed as options or arguments
