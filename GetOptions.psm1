@@ -61,9 +61,11 @@ function Get-Options {
             http://hg.python.org/cpython/file/2.7/Lib/getopt.py
     #>
 
+
     [Alias('Get-LongOptions', 'Get-LongOptionsOnly', 'getopt', 'getopt_long', 'getopt_long_only')]
     [CmdletBinding(DefaultParameterSetName = 'getopt')]
     [OutputType([System.Object[]])]
+
     param (
         [Alias('argv')]
         [Parameter(Mandatory = $true, Position = 0)]
@@ -78,9 +80,11 @@ function Get-Options {
         [Parameter(Mandatory = $true, ParameterSetName = 'getopt_long', Position = 2)]
         [string[]]$LongOptions,
 
+
         [Parameter(DontShow = $true, ParameterSetName = 'getopt_long')]
         [switch]$LongOptionsOnly = $MyInvocation.Line -match 'Get-LongOptionsOnly|getopt_long_only'
     )
+
 
     $Options = New-Object -TypeName System.Collections.Specialized.OrderedDictionary
     $Remaining = New-Object -TypeName System.Collections.Generic.List[System.Object]
@@ -89,8 +93,10 @@ function Get-Options {
     $Arguments = $Arguments -as [array]
     $LongOptions = $LongOptions -as [array]
 
+
     for ($i = 0; $i -lt $Arguments.Length; $i++) {
         $arg = $Arguments[$i]
+
 
         # Allow "-" as well as "--" to indicate a long option
         if ($LongOptionsOnly -and ($arg -match '^[-/\+][^-/]')) {
@@ -114,6 +120,7 @@ function Get-Options {
             }
         }
 
+
         if ($null -eq $arg) { continue }
 
         # Ensure only strings are parsed as options or arguments
@@ -122,8 +129,10 @@ function Get-Options {
         # The argument "--" forces an end of option processing regardless of the scanning mode
         elseif ($arg -match '^--$') { while ($Arguments[$i]) { $Remaining.Add($Arguments[++$i]) } }
 
+
         elseif ($LongOptions -and ($arg -match '^(--|//)([\w-]+)([=:](.+))?')) {
             $name = $Matches[2] -as [string]
+
 
             # Capture the value if it was included with the option
             if ($null -ne $Matches[4]) { $value = $Matches[4] -as [string] }
@@ -133,13 +142,17 @@ function Get-Options {
                 $longOpt = $LongOptions | Where-Object { $PSItem -match ('^(' + $name + '[\w-]*)={0,2}$') }
             }
 
+
             if ($longOpt.Count -eq 1) {
                 # Capture the unabbreviated name
                 $name = $Matches[1] -as [string]
 
+
                 if ($Options.Contains($name)) {
-                    return ($Options, $Remaining, ('Option "' + $name + '" is already specified.'))
+                    $message = 'Option "' + $name + '" is already specified.'
+                    return $Options, $Remaining, $message
                 }
+
 
                 if ($longOpt -match '=$') {
                     if ($null -ne $value) { $Options.Add($name, $value) }
@@ -147,17 +160,23 @@ function Get-Options {
                     # Check if on the last argument, or if the next argument is another flag or option
                     elseif (($i -eq ($Arguments.Length - 1)) -or ($Arguments[$i + 1] -match '^[-/\+].')) {
                         if ($longOpt -match '==$') { $Options.Add($name, $true) }
-                        else { return ($Options, $Remaining, ('Option "' + $name + '" requires an argument.')) }
+                        else {
+                            $message = 'Option "' + $name + '" requires an argument.'
+                            return $Options, $Remaining, $message
+                        }
                     }
                     else { $Options.Add($name, $Arguments[++$i]) }
                 }
                 else { $Options.Add($name, $true) }
             }
+
             elseif ($longOpt.Count -gt 1) {
-                return ($Options, $Remaining, ('Option "' + $name + '" is not a unique prefix.'))
+                $message = 'Option "' + $name + '" is not a unique prefix.'
+                return $Options, $Remaining, $message
             }
             else {
-                return ($Options, $Remaining, ('Option "' + $name + '" not recognized.'))
+                $message = 'Option "' + $name + '" not recognized.'
+                return $Options, $Remaining, $message
             }
         }
 
@@ -168,9 +187,12 @@ function Get-Options {
                 if ($OptionsString -cmatch ([regex]::Escape($flag) + ':{0,2}')) {
                     $shortOpt = $Matches[0] -as [string]
 
+
                     if ($Options.Contains($flag)) {
-                        return ($Options, $Remaining, ('Option "' + $flag + '" is already specified.'))
+                        $message = 'Option "' + $flag + '" is already specified.'
+                        return $Options, $Remaining, $message
                     }
+
 
                     if ($shortOpt -match ':$') {
                         if (($j -eq 1) -and ($j -ne ($arg.Length - 1))) {
@@ -183,7 +205,10 @@ function Get-Options {
                         # Check if there are more arguments, or if the next argument is another flag or option
                         elseif (($i -eq ($Arguments.Length - 1)) -or ($Arguments[$i + 1] -match '^[-/\+].')) {
                             if ($shortOpt -match '::$') { $Options.Add($flag, $true) }
-                            else { return ($Options, $Remaining, ('Option "' + $flag + '" requires an argument.')) }
+                            else {
+                                $message = 'Option "' + $flag + '" requires an argument.'
+                                return $Options, $Remaining, $message
+                            }
                         }
                         else { $Options.Add($flag, $Arguments[++$i]) }
                     }
@@ -198,15 +223,18 @@ function Get-Options {
                     else { $Options.Add($flag, $true) }
                 }
                 else {
-                    return ($Options, $Remaining, ('Option "' + $flag + '" not recognized.'))
+                    $message = 'Option "' + $flag + '" not recognized.'
+                    return $Options, $Remaining, $message
                 }
             }
         }
 
         else { $Remaining.Add($arg) }
 
+
         # If the options string starts with "+" or the environment variable POSIXLY_CORRECT is set,
         # then stop processing options as soon as soon as a non-option argument is encountered
+
         if ((($OptionsString -match '^\+') -or $env:POSIXLY_CORRECT) -and $Remaining) {
             while ($Arguments[$i]) { $Remaining.Add($Arguments[++$i]) }
         }

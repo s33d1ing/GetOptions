@@ -1,9 +1,11 @@
 #Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0' }
 
+
 $ModuleManifestName = 'GetOptions.psd1'
 $ModuleManifestPath = "$PSScriptRoot\..\$ModuleManifestName"
 
 Import-Module -FullyQualifiedName $ModuleManifestPath -Force
+
 
 Describe 'Module Manifest Tests' {
     It 'Passes Test-ModuleManifest' {
