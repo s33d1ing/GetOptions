@@ -173,6 +173,12 @@ function Get-Options {
         }
 
         else { $Remaining.Add($arg) }
+
+        # If the options string starts with "+" or the environment variable POSIXLY_CORRECT is set,
+        # then stop processing options as soon as soon as a non-option argument is encountered
+        if ((($OptionsString -match '^\+') -or $env:POSIXLY_CORRECT) -and $Remaining) {
+            while ($Arguments[$i]) { $Remaining.Add($Arguments[++$i]) }
+        }
     }
 
     return $Options, $Remaining
