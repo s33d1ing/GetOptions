@@ -42,7 +42,7 @@ function Get-Options {
             Get-Options -Arguments ('-xzvf', 'Archive.zip', 'C:\Temp\Extracted') -OptionsString 'f:vxz' -LongOptions ('File=', 'Force')
 
             Given: --Force = [bool]$Force; -f, --File = [string]$File; -v = [bool]$Verbose; -x = [bool]$Extract; -z = [bool]$Zip
-            Returns: @( @{ Extract = $true; Zip = $true; Verbose = $true; File = 'Archive.zip' }, 'C:\Temp\Extracted' )
+            Returns: @( @{ Extract = $true; Zip = $true; Verbose = $true; File = 'Archive.zip' }, @( 'C:\Temp\Extracted' ) )
 
         .EXAMPLE
             Get-Options -Arguments ('-xzv', '--File=Archive.zip', '--Force') -OptionsString 'f:vxz' -LongOptions ('File=', 'Force')
@@ -111,7 +111,7 @@ function Get-Options {
                     if ($null -ne $value) { $Options.Add($name, $value) }
 
                     # Check if on the last argument, or if the next argument is another flag or option
-                    elseif (($i -eq ($Arguments.Length - 1)) -or ($Arguments[$i + 1] -match '^[-/+]')) {
+                    elseif (($i -eq ($Arguments.Length - 1)) -or ($Arguments[$i + 1] -match '^[-/\+]')) {
                         if ($longOpt -match '==$') { $Options.Add($name, $true) }
                         else { return ($Options, $Remaining, ('Option "' + $name + '" requires an argument.')) }
                     }
@@ -127,7 +127,7 @@ function Get-Options {
             }
         }
 
-        elseif ($OptionsString -and ($arg -match '^[-/+].')) {
+        elseif ($OptionsString -and ($arg -match '^[-/\+].')) {
             for ($j = 1; $j -lt $arg.Length; $j++) {
                 $flag = $arg[$j] -as [string]
 
@@ -147,7 +147,7 @@ function Get-Options {
                         }
 
                         # Check if there are more arguments, or if the next argument is another flag or option
-                        elseif (($i -eq ($Arguments.Length - 1)) -or ($Arguments[$i + 1] -match '^[-/+]')) {
+                        elseif (($i -eq ($Arguments.Length - 1)) -or ($Arguments[$i + 1] -match '^[-/\+]')) {
                             if ($shortOpt -match '::$') { $Options.Add($flag, $true) }
                             else { return ($Options, $Remaining, ('Option "' + $flag + '" requires an argument.')) }
                         }
