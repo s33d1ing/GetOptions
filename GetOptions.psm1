@@ -111,7 +111,7 @@ function Get-Options {
                     if ($null -ne $value) { $Options.Add($name, $value) }
 
                     # Check if on the last argument, or if the next argument is another flag or option
-                    elseif (($i -eq ($Arguments.Length - 1)) -or ($Arguments[$i + 1] -match '^[-/\+]')) {
+                    elseif (($i -eq ($Arguments.Length - 1)) -or ($Arguments[$i + 1] -match '^[-/\+].')) {
                         if ($longOpt -match '==$') { $Options.Add($name, $true) }
                         else { return ($Options, $Remaining, ('Option "' + $name + '" requires an argument.')) }
                     }
@@ -147,7 +147,7 @@ function Get-Options {
                         }
 
                         # Check if there are more arguments, or if the next argument is another flag or option
-                        elseif (($i -eq ($Arguments.Length - 1)) -or ($Arguments[$i + 1] -match '^[-/\+]')) {
+                        elseif (($i -eq ($Arguments.Length - 1)) -or ($Arguments[$i + 1] -match '^[-/\+].')) {
                             if ($shortOpt -match '::$') { $Options.Add($flag, $true) }
                             else { return ($Options, $Remaining, ('Option "' + $flag + '" requires an argument.')) }
                         }
