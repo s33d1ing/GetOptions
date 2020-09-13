@@ -88,6 +88,9 @@ function Get-Options {
         # Ensure only strings are parsed as options or arguments
         elseif ($arg -isnot [string]) { $Remaining.Add($arg) }
 
+        # The argument "--" forces an end of option processing regardless of the scanning mode
+        elseif ($arg -match '^--$') { while ($Arguments[$i]) { $Remaining.Add($Arguments[++$i]) } }
+
         elseif ($LongOptions -and ($arg -match '^(--|//)([\w-]+)([=:](.+))?')) {
             $name = $Matches[2] -as [string]
 
