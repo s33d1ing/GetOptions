@@ -1,3 +1,5 @@
+#Requires -Modules @{ ModuleName = 'Pester'; ModuleVersion = '5.0' }
+
 $ModuleManifestName = 'GetOptions.psd1'
 $ModuleManifestPath = "$PSScriptRoot\..\$ModuleManifestName"
 
@@ -73,7 +75,7 @@ Describe 'Argument Parsing Tests' {
         $r[1][0] | Should -Be 1
         $r[2][0] | Should -Be 2
         $r[2][1] | Should -Be 3
-        $r.Foo | Should -Be 'Bar'
+        $r[3]['Foo'] | Should -Be 'Bar'
     }
 
     It 'Test for abbreviated names' {
@@ -96,9 +98,9 @@ Describe 'Argument Parsing Tests' {
         $p.v | Should -Be $true
         $p.V | Should -Be $true
 
-        $p, $r, $m = Get-Options -Arguments '--foo', 'Bar', '--version' -LongOptions 'Foo=', 'Version'
+        $p, $r, $m = Get-Options -Arguments '--foo', 'Bar', '--verbose' -LongOptions 'Foo=', 'Verbose'
         $p.Foo | Should -Be 'Bar'
-        $p.Version | Should -Be $true
+        $p.Verbose | Should -Be $true
     }
 
     It 'Test for repeating flags' {
@@ -121,8 +123,8 @@ Describe 'Argument Parsing Tests' {
         $p, $r, $m = Get-Options -Arguments '--D', '//E', '-/F', '/-F' -LongOptions 'D', 'E', 'F'
         $p.D | Should -Be $true
         $p.E | Should -Be $true
-        $r | Should -Contain '-/F'
-        $r | Should -Contain '/-F'
+        $r[0] | Should -Be '-/F'
+        $r[1] | Should -Be '/-F'
     }
 
     It 'Test for missing arguments' {
@@ -153,5 +155,53 @@ Describe 'Argument Parsing Tests' {
 
         $p, $r, $m = Get-Options -Arguments '-f', '-b', '-t' -OptionsString 'fb' -LongOptions 'Foo', 'Bar'
         $m | Should -Be 'Option "t" not recognized.'
+    }
+
+    Describe 'POSIX behaviour' {
+        It 'Test for special "-W" option' {
+            $p, $r, $m = Get-Options -Arguments '-W' -OptionsString 'W;'
+            $p.W | Should -Be $true
+
+            $p, $r, $m = Get-Options -Arguments '-W', 'Foo' -OptionsString 'W;'
+            $p.W | Should -Be $true
+            $r[0] | Should -Be 'Foo'
+
+
+            $p, $r, $m = Get-Options -Arguments '-W', 'Foo', 'Bar' -OptionsString 'W;' -LongOptions 'Foo'
+            $p.Foo | Should -Be $true
+            $r[0] | Should -Be 'Bar'
+
+            $p, $r, $m = Get-Options -Arguments '-W', 'Foo', 'Bar' -OptionsString 'W;' -LongOptions 'Foo='
+            $p.Foo | Should -Be 'Bar'
+
+            $p, $r, $m = Get-Options -Arguments '-WFoo', 'Bar' -OptionsString 'W;' -LongOptions 'Foo=='
+            $p.Foo | Should -Be 'Bar'
+
+
+            $p, $r, $m = Get-Options -Arguments '-W', 'Foo=Bar' -OptionsString 'W;' -LongOptions 'Foo='
+            $p.Foo | Should -Be 'Bar'
+
+            $p, $r, $m = Get-Options -Arguments '-WFoo=Bar' -OptionsString 'W;' -LongOptions 'Foo=='
+            $p.Foo | Should -Be 'Bar'
+
+
+            $p, $r, $m = Get-Options -Arguments '-W', '--Foo', '--Bar' -OptionsString 'W;' -LongOptions 'Foo='
+            $m | Should -Be 'Option "Foo" requires an argument.'
+
+            $p, $r, $m = Get-Options -Arguments '-WFoo', '--Bar' -OptionsString 'W;' -LongOptions 'Foo='
+            $m | Should -Be 'Option "Foo" requires an argument.'
+
+
+            $p, $r, $m = Get-Options -Arguments '-W' -OptionsString 'W;' -LongOptions 'Foo='
+            $p.W | Should -Be $true
+        }
+
+        It 'Test for POSIXLY_CORRECT' {
+            $p, $r, $m = Get-Options -Arguments '-f', 'Foo', 'Stop', '-b', 'Bar' -OptionsString '+f:b:'
+            $p.f | Should -Be 'Foo'
+            $r[0] | Should -Be 'Stop'
+            $r[1] | Should -Be '-b'
+            $r[2] | Should -Be 'Bar'
+        }
     }
 }
