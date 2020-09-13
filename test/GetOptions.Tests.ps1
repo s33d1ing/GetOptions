@@ -157,6 +157,18 @@ Describe 'Argument Parsing Tests' {
         $m | Should -Be 'Option "t" not recognized.'
     }
 
+    It 'Test for Long Options only' {
+        $p, $r, $m = Get-Options -Arguments '-Foo', '-b' -OptionsString 'fb' -LongOptions 'Foo', 'Bar' -LongOptionsOnly
+        $p.Foo | Should -Be $true
+        $p.Bar | Should -Be $true
+
+        $p, $r, $m = Get-LongOptionsOnly -Arguments '-Foo', '--Bar', '-a', '--b' -OptionsString 'abc' -LongOptions 'Foo', 'Bar'
+        $p.Foo | Should -Be $true
+        $p.Bar | Should -Be $true
+        $p.a | Should -Be $true
+        $m | Should -Be 'Option "Bar" is already specified.'
+    }
+
     Describe 'POSIX behaviour' {
         It 'Test for special "-W" option' {
             $p, $r, $m = Get-Options -Arguments '-W' -OptionsString 'W;'

@@ -4,10 +4,10 @@ Parses command line arguments.
 
 This module helps scripts to parse the command line arguments in $args.  
 
-It supports the same conventions as the Unix getopt() function differentiating between arguments starting with "-" and "--".  
+It supports the same conventions as the getopt function but allows arguments starting with "-" and "--".  
 Long options similar to those supported by GNU software may be used as well via an optional third argument.  
 
-The function returns an array containing the Options as a hashtable and the remaining arguments as a string array.  
+The function returns an array containing the Options as a hashtable and the remaining arguments as a string array.  If an error is encountered, a third array object containing the message.  
 
     Arguments:
         Array of values for undeclared parameters that are passed to a function, script, or script block.
@@ -29,6 +29,12 @@ The function returns an array containing the Options as a hashtable and the rema
 
         Options which require an argument should be followed by an equal sign ("=").
         Options which accept an optional argument should be followed by two equal signs ("==").
+
+    LongOptionsOnly
+        Allow "-" as well as "--" to indicate a long option.
+
+        If an option that starts with "-" (not "--") doesn't match a long option,
+        but does match a short option, it is parsed as a short option instead.
 
 Source: https://github.com/lukesampson/scoop/blob/master/lib/getopt.ps1  
 Origin: http://hg.python.org/cpython/file/2.7/Lib/getopt.py  

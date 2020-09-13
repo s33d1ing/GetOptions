@@ -32,6 +32,12 @@ function Get-Options {
             Options which require an argument should be followed by an equal sign ("=").
             Options which accept an optional argument should be followed by two equal signs ("==").
 
+        .PARAMETER LongOptionsOnly
+            Allow "-" as well as "--" to indicate a long option.
+
+            If an option that starts with "-" (not "--") doesn't match a long option,
+            but does match a short option, it is parsed as a short option instead.
+
         .EXAMPLE
             Get-Options -Arguments ('-xzvf', 'Archive.zip', '--Force') -OptionsString 'f:vxz' -LongOptions ('File=', 'Force')
 
@@ -55,7 +61,7 @@ function Get-Options {
             http://hg.python.org/cpython/file/2.7/Lib/getopt.py
     #>
 
-    [Alias('getopt', 'getopt_long')]
+    [Alias('Get-LongOptions', 'Get-LongOptionsOnly', 'getopt', 'getopt_long', 'getopt_long_only')]
     [CmdletBinding(DefaultParameterSetName = 'getopt')]
     [OutputType([System.Object[]])]
     param (
@@ -70,7 +76,10 @@ function Get-Options {
 
         [Alias('longopts')]
         [Parameter(Mandatory = $true, ParameterSetName = 'getopt_long', Position = 2)]
-        [string[]]$LongOptions
+        [string[]]$LongOptions,
+
+        [Parameter(DontShow = $true, ParameterSetName = 'getopt_long')]
+        [switch]$LongOptionsOnly = $MyInvocation.Line -match 'Get-LongOptionsOnly|getopt_long_only'
     )
 
     $Options = New-Object -TypeName System.Collections.Specialized.OrderedDictionary
@@ -82,6 +91,18 @@ function Get-Options {
 
     for ($i = 0; $i -lt $Arguments.Length; $i++) {
         $arg = $Arguments[$i]
+
+        # Allow "-" as well as "--" to indicate a long option
+        if ($LongOptionsOnly -and ($arg -match '^[-/\+][^-/]')) {
+            $arg = '--' + $arg.Substring(1)
+
+            # Check if the option does not match a long option, but does match a short option
+            if (-not ($LongOptions -match ('^(' + [regex]::Escape($arg.Substring(2)) + '[\w-]*)={0,2}$'))) {
+                if (($OptionsString -cmatch ([regex]::Escape($arg.SubString(2)) + ':{0,2}'))) {
+                    $arg = '-' + $arg.Substring(2)
+                }
+            }
+        }
 
         # If the options string contains "W;", then "-W Option" is treated as "--Option"
         if ($LongOptions -and ($OptionsString -match 'W;') -and ($arg -cmatch '^[-/\+]W(.+)?')) {
