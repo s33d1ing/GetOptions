@@ -127,7 +127,7 @@ function Get-Options {
         elseif ($arg -isnot [string]) { $Remaining.Add($arg) }
 
         # The argument "--" forces an end of option processing regardless of the scanning mode
-        elseif ($arg -match '^--$') { while ($Arguments[$i]) { $Remaining.Add($Arguments[++$i]) } }
+        elseif ($arg -match '^--$') { while ($Arguments[$i + 1]) { $Remaining.Add($Arguments[++$i]) } }
 
 
         elseif ($LongOptions -and ($arg -match '^(--|//)([\w-]+)([=:](.+))?')) {
@@ -236,7 +236,7 @@ function Get-Options {
         # then stop processing options as soon as soon as a non-option argument is encountered
 
         if ((($OptionsString -match '^\+') -or $env:POSIXLY_CORRECT) -and $Remaining) {
-            while ($Arguments[$i]) { $Remaining.Add($Arguments[++$i]) }
+            while ($Arguments[$i + 1]) { $Remaining.Add($Arguments[++$i]) }
         }
     }
 
