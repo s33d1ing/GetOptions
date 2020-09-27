@@ -6,19 +6,64 @@ function Get-Options {
         .DESCRIPTION
             This module helps scripts to parse the command line arguments in $args.
 
-            It supports the same conventions as the Unix getopt() function differentiating between arguments starting with "-" and "--".
-            Long options similar to those supported by GNU software may be used as well via an optional third argument.
+            It supports the same conventions as the getopt function but allows options starting with "-", "/", or "+".
 
             The function returns an array containing the Options as a hashtable and the remaining arguments as a string array.
+            If an error is encountered, a third array object containing the error message is returned.
 
         .PARAMETER Arguments
             Array of values for undeclared parameters that are passed to a function, script, or script block.
 
-            An option's value can be provided as the proceeding argument or as a long option with an equal sign (i.e. --Option=Value).
-            A single flag will evaluate to $true, repeating flags (i.e. -vvv) will evaluate to the number of occurrences (i.e. 3).
+            An short option's value can be provided as the proceeding argument (i.e. -f Bar) or immediately following the flag (i.e. -fBar).
+            A single flag (i.e. -v) will evaluate to $true, repeating flags (i.e. -vvv) will evaluate to the number of occurrences (i.e. 3).
 
-            Flags are case sensitive and long options are case insensitive.
-            Note, PowerShell cannot handle like parameters of different cases.
+            Note, flags are case sensitive but PowerShell cannot handle like parameters of different cases.
+
+        .PARAMETER OptionsString
+            String containing the legitimate option characters.
+
+            Options which require an argument should be followed by a colon (":").
+            Options which accept an optional argument should be followed by two colons ("::").
+    #>
+
+    [Alias('getopt')]
+    [CmdletBinding()]
+
+    param (
+        [Alias('argv')]
+        [Parameter(Mandatory = $true, Position = 0)]
+        [object[]]$Arguments,
+
+        [Alias('optstring', 'shortopts')]
+        [Parameter(Mandatory = $true, Position = 1)]
+        [string]$OptionsString
+    )
+
+    Convert-Arguments @PSBoundParameters
+}
+
+function Get-LongOptions {
+    <#
+        .SYNOPSIS
+            Parses command line arguments.
+
+        .DESCRIPTION
+            This module helps scripts to parse the command line arguments in $args.
+
+            It works the same as the Get-Options function, but also accepts long options starting with "--" or "//".
+
+            The function returns an array containing the Options as a hashtable and the remaining arguments as a string array.
+            If an error is encountered, a third array object containing the error message is returned.
+
+        .PARAMETER Arguments
+            Array of values for undeclared parameters that are passed to a function, script, or script block.
+
+            An short option's value can be provided as the proceeding argument (i.e. -f Bar) or immediately following the flag (i.e. -fBar).
+            A single flag (i.e. -v) will evaluate to $true, repeating flags (i.e. -vvv) will evaluate to the number of occurrences (i.e. 3).
+
+            An long option's value can be provided as the proceeding argument (i.e. --Foo Bar) or after an equals sign (i.e. --Foo=Bar).
+
+            Note, flags are case sensitive but PowerShell cannot handle like parameters of different cases.
 
         .PARAMETER OptionsString
             String containing the legitimate option characters.
@@ -31,40 +76,10 @@ function Get-Options {
 
             Options which require an argument should be followed by an equal sign ("=").
             Options which accept an optional argument should be followed by two equal signs ("==").
-
-        .PARAMETER LongOptionsOnly
-            Allow "-" as well as "--" to indicate a long option.
-
-            If an option that starts with "-" (not "--") doesn't match a long option,
-            but does match a short option, it is parsed as a short option instead.
-
-        .EXAMPLE
-            Get-Options -Arguments ('-xzvf', 'Archive.zip', '--Force') -OptionsString 'f:vxz' -LongOptions ('File=', 'Force')
-
-            Given: --Force = [bool]$Force; -f, --File = [string]$File; -v = [bool]$Verbose; -x = [bool]$Extract; -z = [bool]$Zip
-            Returns: @{ Extract = $true; Zip = $true; Verbose = $true; File = 'Archive.zip'; Force = $true }
-
-        .EXAMPLE
-            Get-Options -Arguments ('-xzvf', 'Archive.zip', 'C:\Temp\Extracted') -OptionsString 'f:vxz' -LongOptions ('File=', 'Force')
-
-            Given: --Force = [bool]$Force; -f, --File = [string]$File; -v = [bool]$Verbose; -x = [bool]$Extract; -z = [bool]$Zip
-            Returns: @( @{ Extract = $true; Zip = $true; Verbose = $true; File = 'Archive.zip' }, @( 'C:\Temp\Extracted' ) )
-
-        .EXAMPLE
-            Get-Options -Arguments ('-xzv', '--File=Archive.zip', '--Force') -OptionsString 'f:vxz' -LongOptions ('File=', 'Force')
-
-            Given: --Force = [bool]$Force; -f, --File = [string]$File; -v = [bool]$Verbose; -x = [bool]$Extract; -z = [bool]$Zip
-            Returns: @{ Extract = $true; Zip = $true; Verbose = $true; File = 'Archive.zip'; Force = $true }
-
-        .LINK
-            https://github.com/lukesampson/scoop/blob/master/lib/getopt.ps1
-            http://hg.python.org/cpython/file/2.7/Lib/getopt.py
     #>
 
-
-    [Alias('Get-LongOptions', 'Get-LongOptionsOnly', 'getopt', 'getopt_long', 'getopt_long_only')]
-    [CmdletBinding(DefaultParameterSetName = 'getopt')]
-    [OutputType([System.Object[]])]
+    [Alias('getopt_long')]
+    [CmdletBinding()]
 
     param (
         [Alias('argv')]
@@ -72,18 +87,77 @@ function Get-Options {
         [object[]]$Arguments,
 
         [Alias('optstring', 'shortopts')]
-        [Parameter(Mandatory = $true, ParameterSetName = 'getopt', Position = 1)]
-        [Parameter(Mandatory = $false, ParameterSetName = 'getopt_long', Position = 1)]
+        [Parameter(Position = 1)]
         [string]$OptionsString,
 
         [Alias('longopts')]
-        [Parameter(Mandatory = $true, ParameterSetName = 'getopt_long', Position = 2)]
-        [string[]]$LongOptions,
-
-
-        [Parameter(DontShow = $true, ParameterSetName = 'getopt_long')]
-        [switch]$LongOptionsOnly = $MyInvocation.Line -match 'Get-LongOptionsOnly|getopt_long_only'
+        [Parameter(Mandatory = $true, Position = 2)]
+        [string[]]$LongOptions
     )
+
+    Convert-Arguments @PSBoundParameters
+}
+
+function Get-LongOptionsOnly {
+    <#
+        .SYNOPSIS
+            Parses command line arguments.
+
+        .DESCRIPTION
+            This module helps scripts to parse the command line arguments in $args.
+
+            It works the same as the Get-LongOptions function, but allows long options to start with a "-", "/", or "+".
+            If an option does not match a long option, but matches a short option, it is parsed as a short option.
+
+            The function returns an array containing the Options as a hashtable and the remaining arguments as a string array.
+            If an error is encountered, a third array object containing the error message is returned.
+
+        .PARAMETER Arguments
+            Array of values for undeclared parameters that are passed to a function, script, or script block.
+
+            An short option's value can be provided as the proceeding argument (i.e. -f Bar) or immediately following the flag (i.e. -fBar).
+            A single flag (i.e. -v) will evaluate to $true, repeating flags (i.e. -vvv) will evaluate to the number of occurrences (i.e. 3).
+
+            An long option's value can be provided as the proceeding argument (i.e. --Foo Bar) or after an equals sign (i.e. --Foo=Bar).
+
+            Note, flags are case sensitive but PowerShell cannot handle like parameters of different cases.
+
+        .PARAMETER OptionsString
+            String containing the legitimate option characters.
+
+            Options which require an argument should be followed by a colon (":").
+            Options which accept an optional argument should be followed by two colons ("::").
+
+        .PARAMETER LongOptions
+            Array of strings containing the names of the long options.
+
+            Options which require an argument should be followed by an equal sign ("=").
+            Options which accept an optional argument should be followed by two equal signs ("==").
+    #>
+
+    [Alias('getopt_long_only')]
+    [CmdletBinding()]
+
+    param (
+        [Alias('argv')]
+        [Parameter(Mandatory = $true, Position = 0)]
+        [object[]]$Arguments,
+
+        [Alias('optstring', 'shortopts')]
+        [Parameter(Position = 1)]
+        [string]$OptionsString,
+
+        [Alias('longopts')]
+        [Parameter(Mandatory = $true, Position = 2)]
+        [string[]]$LongOptions
+    )
+
+    Convert-Arguments @PSBoundParameters -LongOptionsOnly
+}
+
+
+function Convert-Arguments {
+    param ([object[]]$Arguments, [string]$OptionsString, [string[]]$LongOptions, [switch]$LongOptionsOnly)
 
 
     $Options = New-Object -TypeName System.Collections.Specialized.OrderedDictionary
