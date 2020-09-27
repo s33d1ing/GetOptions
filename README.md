@@ -4,19 +4,24 @@ Parses command line arguments.
 
 This module helps scripts to parse the command line arguments in $args.  
 
-It supports the same conventions as the Unix getopt() function differentiating between arguments starting with "-" and "--".  
-Long options similar to those supported by GNU software may be used as well via an optional third argument.  
+Get-Options supports the same conventions as the getopt function but allows options starting with "-", "/", or "+".  
+Get-LongOptions works the same as the Get-Options function, but also accepts long options starting with "--" or "//".  
+
+Get-LongOptionsOnly works the same as the Get-LongOptions function, but allows long options to start with a "-", "/", or "+".  
+If an option does not match a long option, but matches a short option, it is parsed as a short option.  
 
 The function returns an array containing the Options as a hashtable and the remaining arguments as a string array.  
+If an error is encountered, a third array object containing the error message is returned.  
 
     Arguments:
         Array of values for undeclared parameters that are passed to a function, script, or script block.
 
-        An option's value can be provided as the proceeding argument or as a long option with an equal sign (i.e. --Option=Value).
-        A single flag will evaluate to $true, repeating flags (i.e. -vvv) will evaluate to the number of occurrences (i.e. 3).
+        An short option's value can be provided as the proceeding argument (i.e. -f Bar) or immediately following the flag (i.e. -fBar).
+        A single flag (i.e. -v) will evaluate to $true, repeating flags (i.e. -vvv) will evaluate to the number of occurrences (i.e. 3).
 
-        Flags are case sensitive and long options are case insensitive.
-        Note, PowerShell cannot handle like parameters of different cases.
+        An long option's value can be provided as the proceeding argument (i.e. --Foo Bar) or after an equals sign (i.e. --Foo=Bar).
+
+        Note, flags are case sensitive but PowerShell cannot handle like parameters of different cases.
 
     OptionsString:
         String containing the legitimate option characters.

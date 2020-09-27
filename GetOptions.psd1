@@ -12,7 +12,7 @@
 RootModule = 'GetOptions.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.4.1'
+ModuleVersion = '1.0.0'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -69,7 +69,7 @@ Description = 'Parses command line arguments.'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('Get-Options')
+FunctionsToExport = @('Get-Options', 'Get-LongOptions', 'Get-LongOptionsOnly')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
@@ -78,7 +78,7 @@ CmdletsToExport = @()
 VariablesToExport = @()
 
 # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
-AliasesToExport = @('getopt', 'getopt_long')
+AliasesToExport = @('getopt', 'getopt_long', 'getopt_long_only')
 
 # DSC resources to export from this module
 # DscResourcesToExport = @()
