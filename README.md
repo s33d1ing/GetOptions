@@ -4,13 +4,13 @@ Parses command line arguments.
 
 This module helps scripts to parse the command line arguments in $args.  
 
-Get-Options supports the same conventions as the getopt function but allows options starting with "-", "/", or "+".  
-Get-LongOptions works the same as the Get-Options function, but also accepts long options starting with "--" or "//".  
+Get-Options supports the same conventions as getopt but allows options starting with "-", "/", or "+".  
+Get-LongOptions works the same as Get-Options but also accepts long options starting with "--" or "//".  
 
-Get-LongOptionsOnly works the same as the Get-LongOptions function, but allows long options to start with a "-", "/", or "+".  
+Get-LongOptionsOnly works the same as Get-LongOptions but allows long options starting with "-", "/", or "+".  
 If an option does not match a long option, but matches a short option, it is parsed as a short option.  
 
-The function returns an array containing the Options as a hashtable and the remaining arguments as a string array.  
+The function returns an array containing the Options as a hashtable and the remaining arguments as a array.  
 If an error is encountered, a third array object containing the error message is returned.  
 
     Arguments:

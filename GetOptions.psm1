@@ -178,7 +178,7 @@ function Convert-Arguments {
 
             # Check if the option does not match a long option, but does match a short option
             if (-not ($LongOptions -match ('^(' + [regex]::Escape($arg.Substring(2)) + '[\w-]*)={0,2}$'))) {
-                if (($OptionsString -cmatch ([regex]::Escape($arg.SubString(2)) + ':{0,2}'))) {
+                if (($arg.Length -eq 3) -and ($OptionsString -cmatch ([regex]::Escape($arg.SubString(2)) + ':{0,2}'))) {
                     $arg = '-' + $arg.Substring(2)
                 }
             }
