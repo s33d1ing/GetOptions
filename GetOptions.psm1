@@ -156,9 +156,7 @@ function Get-LongOptionsOnly {
 }
 
 
-function Convert-Arguments {
-    param ([object[]]$Arguments, [string]$OptionsString, [string[]]$LongOptions, [switch]$LongOptionsOnly)
-
+function Convert-Arguments ([object[]]$Arguments, [string]$OptionsString, [string[]]$LongOptions, [switch]$LongOptionsOnly) {
 
     $Options = New-Object -TypeName System.Collections.Specialized.OrderedDictionary
     $Remaining = New-Object -TypeName System.Collections.Generic.List[System.Object]
