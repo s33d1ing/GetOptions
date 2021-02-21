@@ -35,5 +35,5 @@ If an error is encountered, a third array object containing the error message is
         Options which require an argument should be followed by an equal sign ("=").
         Options which accept an optional argument should be followed by two equal signs ("==").
 
-Source: https://github.com/lukesampson/scoop/blob/master/lib/getopt.ps1  
-Origin: http://hg.python.org/cpython/file/2.7/Lib/getopt.py  
+Source: <https://github.com/lukesampson/scoop/blob/master/lib/getopt.ps1>  
+Origin: <http://hg.python.org/cpython/file/2.7/Lib/getopt.py>  
